@@ -121,9 +121,20 @@ fast (four is the max you can eyeball-tap without thinking):
 "Forgot it" is highest priority because forgetting something previously learned
 is the strongest signal of a decaying memory worth rescuing.
 
-The bucket sets the **initial interval** for the resurfacing engine (§7). The
-buckets are fixed in v1 for speed; custom buckets are a possible later add but
-risk slowing the core gesture, so we resist it.
+The bucket sets the **initial interval** for the resurfacing engine (§7).
+
+**Custom buckets.** The four above ship as defaults, but students can add their
+own (e.g. "Ask a resident", "Board-relevant", "Confused by the slide"). Rules to
+keep the core gesture fast and joyful:
+- Sort UI shows at most ~6 buckets at once; beyond that, extras live in a "More"
+  sheet so the one-tap target grid never gets cramped.
+- Creating a bucket is itself delightful: name it, pick a color from the palette,
+  pick an emoji, set its resurface priority — all in one playful sheet with live
+  preview. No buried settings screen.
+- Each custom bucket maps to a resurface priority (Highest→Low) so the
+  spaced-repetition engine treats it correctly.
+- Defaults can be renamed/recolored but not deleted (keeps onboarding sane);
+  custom ones are fully editable and reorderable by drag.
 
 ---
 
@@ -253,8 +264,8 @@ Review      { id, captureId, dueAt, interval, ease, lastResult, history[] }
 - Search across captures + enrichments.
 - Course/context tagging with calendar-aware suggestions.
 - Slide-photo capture with later OCR.
-- Export (Markdown / Anki deck) — students live in Anki; exporting cards is a
-  killer integration.
+- **Intelligent Anki export** — students live in Anki; this is a killer
+  integration and must be genuinely good, not a dumb text dump. See §15.
 
 **Fast-follow (v1.x):**
 - Dark mode.
@@ -282,6 +293,33 @@ Review      { id, captureId, dueAt, interval, ease, lastResult, history[] }
 7. **M6 — Polish: haptics, motion, dark mode, Anki export, store prep.**
 
 We can ship a compelling internal demo at the end of **M1** with zero backend.
+
+---
+
+## 15. Intelligent Anki export
+
+A dumb export (front = fragment, back = blob) is worse than useless — it creates
+bad cards students delete. We make the AI do the work of a good card author.
+
+**What "intelligent" means here:**
+- **Atomic cards.** The enrichment is decomposed into multiple well-formed cards,
+  each testing *one* fact (Anki's minimum-information principle), instead of one
+  giant card.
+- **Right card type per fact:** basic Q/A, **cloze deletions** for definitions
+  and lists, and image-occlusion-friendly output when a slide photo exists.
+- **High-yield framing.** Claude generates cards in the style that works for
+  boards — clinical vignette → answer, mechanism prompts, "buzzword → diagnosis."
+- **Preview & curate before export.** The student sees the generated cards, can
+  edit/delete/regenerate any of them, and picks which make the cut. No surprise
+  garbage in their deck.
+- **Clean `.apkg` output** with a proper deck name (mapped from course/bucket),
+  tags carried over from enrichment, and scheduling left to Anki. We generate a
+  real Anki package (genanki-style structure) rather than fragile CSV.
+- **Round-trip respect.** Exported cards are marked as exported and link back to
+  the source capture so nothing is double-exported.
+
+This is its own milestone-grade feature; it lands after the enrichment pipeline
+(M4) since card quality depends on enrichment quality.
 
 ---
 
