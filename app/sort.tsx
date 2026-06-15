@@ -112,16 +112,26 @@ export default function SortScreen() {
   });
 
   // Directional bucket-name hints that brighten as you drag toward them.
-  function hintStyle(dir: Dir) {
-    return useAnimatedStyle(() => {
-      let active = 0;
-      if (dir === 'left') active = Math.max(0, -tx.value);
-      if (dir === 'right') active = Math.max(0, tx.value);
-      if (dir === 'up') active = Math.max(0, -ty.value);
-      if (dir === 'down') active = Math.max(0, ty.value);
-      return { opacity: interpolate(active, [0, SWIPE_THRESHOLD], [0.35, 1]) };
-    });
-  }
+  // These four Hooks must be called unconditionally (Rules of Hooks), so they
+  // live at the top level and are looked up by direction below.
+  const leftHint = useAnimatedStyle(() => ({
+    opacity: interpolate(Math.max(0, -tx.value), [0, SWIPE_THRESHOLD], [0.35, 1]),
+  }));
+  const rightHint = useAnimatedStyle(() => ({
+    opacity: interpolate(Math.max(0, tx.value), [0, SWIPE_THRESHOLD], [0.35, 1]),
+  }));
+  const upHint = useAnimatedStyle(() => ({
+    opacity: interpolate(Math.max(0, -ty.value), [0, SWIPE_THRESHOLD], [0.35, 1]),
+  }));
+  const downHint = useAnimatedStyle(() => ({
+    opacity: interpolate(Math.max(0, ty.value), [0, SWIPE_THRESHOLD], [0.35, 1]),
+  }));
+  const hintStyles: Record<Dir, ReturnType<typeof useAnimatedStyle>> = {
+    left: leftHint,
+    right: rightHint,
+    up: upHint,
+    down: downHint,
+  };
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
@@ -150,7 +160,7 @@ export default function SortScreen() {
           <View style={styles.stage}>
             {DIRS.map((d) =>
               dirBuckets[d] ? (
-                <Animated.View key={d} style={[styles.hint, styles[`hint_${d}`], hintStyle(d)]}>
+                <Animated.View key={d} style={[styles.hint, styles[`hint_${d}`], hintStyles[d]]}>
                   <Text style={styles.hintEmoji}>{dirBuckets[d]!.emoji}</Text>
                   <Text style={[styles.hintLabel, { color: dirBuckets[d]!.color }]}>
                     {dirBuckets[d]!.label}
