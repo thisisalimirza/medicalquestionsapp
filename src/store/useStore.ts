@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import { DEFAULT_BUCKETS } from '../data/defaultBuckets';
 import { runEnrichment } from '../lib/enrichment';
 import { applyReview, createReview, isDue } from '../lib/scheduling';
@@ -218,14 +219,23 @@ export const useStore = create<State>()(
 );
 
 // Selectors
-export const selectUnsorted = (s: State) => s.captures.filter((c) => c.bucketId === null);
-export const selectDue = (s: State) =>
+//
+// IMPORTANT: selectors that build a NEW array/object each call (filter, sort,
+// spread) must be consumed through `useShallow`, otherwise Zustand's snapshot
+// is a fresh reference every render → "getSnapshot should be cached" → infinite
+// render loop. The hooks below wrap them so screens can't get this wrong.
+const selectUnsorted = (s: State) => s.captures.filter((c) => c.bucketId === null);
+const selectDue = (s: State) =>
   s.captures
     .filter((c) => isDue(c.review))
-    .sort((a, b) => (a.review!.dueAt - b.review!.dueAt));
-export const selectCaptureById = (id: string) => (s: State) =>
-  s.captures.find((c) => c.id === id);
-export const selectBucketById = (id: string | null) => (s: State) =>
-  s.buckets.find((b) => b.id === id);
-export const selectSortedBuckets = (s: State) =>
+    .sort((a, b) => a.review!.dueAt - b.review!.dueAt);
+const selectSortedBuckets = (s: State) =>
   [...s.buckets].sort((a, b) => a.order - b.order);
+
+/** Stable, memoized array hooks (safe to call directly in components). */
+export const useSortedBuckets = () => useStore(useShallow(selectSortedBuckets));
+export const useUnsorted = () => useStore(useShallow(selectUnsorted));
+export const useUnsortedCount = () => useStore((s) => selectUnsorted(s).length);
+export const useDue = () => useStore(useShallow(selectDue));
+export const useCaptureById = (id: string) =>
+  useStore((s) => s.captures.find((c) => c.id === id));

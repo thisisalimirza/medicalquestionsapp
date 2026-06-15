@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { haptic } from '../../src/lib/haptics';
-import { selectDue, selectSortedBuckets, useStore } from '../../src/store/useStore';
+import { useDue, useSortedBuckets, useStore } from '../../src/store/useStore';
 import { colors, radius, shadow, spacing, type } from '../../src/theme';
 
 /**
@@ -13,8 +13,8 @@ import { colors, radius, shadow, spacing, type } from '../../src/theme';
  */
 export default function ResurfaceScreen() {
   const insets = useSafeAreaInsets();
-  const due = useStore(selectDue);
-  const buckets = useStore(selectSortedBuckets);
+  const due = useDue();
+  const buckets = useSortedBuckets();
   const reviewCapture = useStore((s) => s.reviewCapture);
   const [revealed, setRevealed] = useState(false);
 

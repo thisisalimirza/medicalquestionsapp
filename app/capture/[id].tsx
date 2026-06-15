@@ -4,15 +4,15 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BucketPill } from '../../src/components/BucketPill';
 import { haptic } from '../../src/lib/haptics';
-import { selectCaptureById, selectSortedBuckets, useStore } from '../../src/store/useStore';
+import { useCaptureById, useSortedBuckets, useStore } from '../../src/store/useStore';
 import { colors, radius, shadow, spacing, type } from '../../src/theme';
 import type { Enrichment } from '../../src/types';
 
 export default function CaptureDetail() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const capture = useStore(selectCaptureById(id));
-  const buckets = useStore(selectSortedBuckets);
+  const capture = useCaptureById(id);
+  const buckets = useSortedBuckets();
   const setBucket = useStore((s) => s.setBucket);
   const enrich = useStore((s) => s.enrich);
   const deleteCapture = useStore((s) => s.deleteCapture);

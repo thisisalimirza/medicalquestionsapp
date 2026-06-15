@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { selectSortedBuckets, useStore } from '../../src/store/useStore';
+import { useSortedBuckets, useStore } from '../../src/store/useStore';
 import { colors, radius, spacing, type } from '../../src/theme';
 import type { Bucket, Capture } from '../../src/types';
 
@@ -13,7 +13,7 @@ const FILTER_UNSORTED = 'unsorted';
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const captures = useStore((s) => s.captures);
-  const buckets = useStore(selectSortedBuckets);
+  const buckets = useSortedBuckets();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<string>(FILTER_ALL);
 

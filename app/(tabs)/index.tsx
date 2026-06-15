@@ -15,7 +15,7 @@ import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BucketPill } from '../../src/components/BucketPill';
 import { haptic } from '../../src/lib/haptics';
-import { selectSortedBuckets, selectUnsorted, useStore } from '../../src/store/useStore';
+import { useSortedBuckets, useStore, useUnsortedCount } from '../../src/store/useStore';
 import { colors, radius, shadow, spacing, type } from '../../src/theme';
 import type { Capture } from '../../src/types';
 
@@ -27,8 +27,8 @@ export default function CaptureScreen() {
 
   const addCapture = useStore((s) => s.addCapture);
   const setBucket = useStore((s) => s.setBucket);
-  const buckets = useStore(selectSortedBuckets);
-  const unsortedCount = useStore((s) => selectUnsorted(s).length);
+  const buckets = useSortedBuckets();
+  const unsortedCount = useUnsortedCount();
 
   const canSave = text.trim().length > 0;
 

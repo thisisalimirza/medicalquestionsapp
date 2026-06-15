@@ -14,7 +14,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BucketPill } from '../src/components/BucketPill';
 import { haptic } from '../src/lib/haptics';
-import { selectSortedBuckets, selectUnsorted, useStore } from '../src/store/useStore';
+import { useSortedBuckets, useStore, useUnsorted } from '../src/store/useStore';
 import { colors, radius, shadow, spacing, type } from '../src/theme';
 import type { Bucket } from '../src/types';
 
@@ -27,8 +27,8 @@ const DIRS: Dir[] = ['left', 'up', 'right', 'down'];
 
 export default function SortScreen() {
   const insets = useSafeAreaInsets();
-  const unsorted = useStore(selectUnsorted);
-  const buckets = useStore(selectSortedBuckets);
+  const unsorted = useUnsorted();
+  const buckets = useSortedBuckets();
   const setBucket = useStore((s) => s.setBucket);
 
   // Snapshot the queue once so it doesn't reshuffle as we sort.

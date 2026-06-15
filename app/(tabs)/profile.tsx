@@ -3,14 +3,14 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { haptic } from '../../src/lib/haptics';
-import { selectSortedBuckets, selectUnsorted, useStore } from '../../src/store/useStore';
+import { useSortedBuckets, useStore, useUnsortedCount } from '../../src/store/useStore';
 import { colors, radius, spacing, type } from '../../src/theme';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const captures = useStore((s) => s.captures);
-  const buckets = useStore(selectSortedBuckets);
-  const unsorted = useStore(selectUnsorted).length;
+  const buckets = useSortedBuckets();
+  const unsorted = useUnsortedCount();
   const seedDemo = useStore((s) => s.seedDemo);
   const clearAll = useStore((s) => s.clearAll);
 
