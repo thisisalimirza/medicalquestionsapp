@@ -39,6 +39,10 @@ interface State {
 
   // Courses
   addCourse: (input: { name: string; color: string }) => Course;
+
+  // Demo / onboarding
+  seedDemo: () => void;
+  clearAll: () => void;
 }
 
 export const useStore = create<State>()(
@@ -174,6 +178,37 @@ export const useStore = create<State>()(
         set((s) => ({ courses: [...s.courses, course] }));
         return course;
       },
+
+      seedDemo: () => {
+        const now = Date.now();
+        const samples: { text: string; bucketId: string | null }[] = [
+          { text: "Wernicke's encephalopathy triad — what are the three?", bucketId: 'forgot' },
+          { text: 'Why does aortic stenosis cause a crescendo-decrescendo murmur?', bucketId: 'fuzzy' },
+          { text: 'Difference between type I and type II hypersensitivity', bucketId: 'new' },
+          { text: 'Mechanism of beta-lactam antibiotics', bucketId: 'got' },
+          { text: 'That enzyme in the urea cycle the prof mentioned — ornithine transcarbamylase?', bucketId: null },
+        ];
+        const captures: Capture[] = samples.map((sample, i) => {
+          const bucket = get().buckets.find((b) => b.id === sample.bucketId);
+          return {
+            id: id(),
+            text: sample.text,
+            bucketId: sample.bucketId,
+            courseId: null,
+            tags: [],
+            createdAt: now - i * 60000,
+            updatedAt: now - i * 60000,
+            syncState: 'local',
+            enrichmentStatus: 'queued',
+            // Make the first two due right now so Resurface is explorable.
+            review: bucket ? { ...createReview(bucket.priority, now), dueAt: i < 2 ? now - 1000 : now + createReview(bucket.priority, now).intervalDays * 86400000 } : undefined,
+          };
+        });
+        set((s) => ({ captures: [...captures, ...s.captures] }));
+        captures.forEach((c) => get().enrich(c.id));
+      },
+
+      clearAll: () => set({ captures: [] }),
     }),
     {
       name: 'mmq-store-v1',

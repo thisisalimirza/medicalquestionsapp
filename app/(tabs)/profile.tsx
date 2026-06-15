@@ -11,6 +11,8 @@ export default function ProfileScreen() {
   const captures = useStore((s) => s.captures);
   const buckets = useStore(selectSortedBuckets);
   const unsorted = useStore(selectUnsorted).length;
+  const seedDemo = useStore((s) => s.seedDemo);
+  const clearAll = useStore((s) => s.clearAll);
 
   return (
     <ScrollView
@@ -67,6 +69,27 @@ export default function ProfileScreen() {
             <Text style={styles.linkSub}>AI-built atomic cards · coming after research pipeline</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.inkFaint} />
+        </Pressable>
+      </Section>
+
+      {/* Try it out */}
+      <Section title="Try it out">
+        <Pressable
+          style={styles.linkRow}
+          onPress={() => {
+            haptic.success();
+            seedDemo();
+          }}
+        >
+          <Ionicons name="sparkles-outline" size={20} color={colors.primary} />
+          <View style={styles.flex}>
+            <Text style={styles.linkLabel}>Load sample captures</Text>
+            <Text style={styles.linkSub}>Fills the app so you can explore every screen</Text>
+          </View>
+        </Pressable>
+        <Pressable style={[styles.linkRow, styles.linkRowTop]} onPress={() => { haptic.bump(); clearAll(); }}>
+          <Ionicons name="trash-outline" size={20} color={colors.danger} />
+          <Text style={[styles.linkLabel, { color: colors.danger }]}>Clear all captures</Text>
         </Pressable>
       </Section>
 
@@ -139,6 +162,7 @@ const styles = StyleSheet.create({
   addBucketText: { ...type.label, color: colors.primary },
 
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
+  linkRowTop: { borderTopWidth: 1, borderTopColor: colors.border },
   linkLabel: { ...type.label, color: colors.ink },
   linkSub: { ...type.caption, color: colors.inkSoft },
 
