@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { DEFAULT_BUCKETS } from '../data/defaultBuckets';
+import { runEnrichment } from '../lib/enrichment';
+import { applyReview, createReview, isDue } from '../lib/scheduling';
 import type { Bucket, Capture, Course, Priority } from '../types';
 
 /**
@@ -25,6 +27,10 @@ interface State {
   setBucket: (captureId: string, bucketId: string | null) => void;
   updateCapture: (captureId: string, patch: Partial<Capture>) => void;
   deleteCapture: (captureId: string) => void;
+  /** (Re)run AI research for a capture. */
+  enrich: (captureId: string) => void;
+  /** Record a spaced-repetition review outcome. */
+  reviewCapture: (captureId: string, result: 'again' | 'good' | 'easy') => void;
 
   // Buckets
   addBucket: (input: { label: string; reaction: string; emoji: string; color: string; priority: Priority }) => void;
@@ -59,13 +65,63 @@ export const useStore = create<State>()(
           enrichmentStatus: 'queued',
         };
         set((s) => ({ captures: [capture, ...s.captures] }));
+        // Fire-and-forget: research starts in the background immediately.
+        get().enrich(capture.id);
         return capture;
       },
 
-      setBucket: (captureId, bucketId) =>
+      enrich: (captureId) => {
+        const capture = get().captures.find((c) => c.id === captureId);
+        if (!capture) return;
         set((s) => ({
           captures: s.captures.map((c) =>
-            c.id === captureId ? { ...c, bucketId, updatedAt: Date.now(), syncState: 'local' } : c
+            c.id === captureId ? { ...c, enrichmentStatus: 'queued' } : c
+          ),
+        }));
+        runEnrichment(capture.text)
+          .then((enrichment) =>
+            set((s) => ({
+              captures: s.captures.map((c) =>
+                c.id === captureId
+                  ? { ...c, enrichment, enrichmentStatus: 'done', updatedAt: Date.now() }
+                  : c
+              ),
+            }))
+          )
+          .catch(() =>
+            set((s) => ({
+              captures: s.captures.map((c) =>
+                c.id === captureId ? { ...c, enrichmentStatus: 'failed' } : c
+              ),
+            }))
+          );
+      },
+
+      setBucket: (captureId, bucketId) =>
+        set((s) => {
+          const bucket = s.buckets.find((b) => b.id === bucketId);
+          return {
+            captures: s.captures.map((c) =>
+              c.id === captureId
+                ? {
+                    ...c,
+                    bucketId,
+                    // Sorting schedules the first resurface, seeded by priority.
+                    review: bucket ? createReview(bucket.priority) : undefined,
+                    updatedAt: Date.now(),
+                    syncState: 'local',
+                  }
+                : c
+            ),
+          };
+        }),
+
+      reviewCapture: (captureId, result) =>
+        set((s) => ({
+          captures: s.captures.map((c) =>
+            c.id === captureId && c.review
+              ? { ...c, review: applyReview(c.review, result), updatedAt: Date.now() }
+              : c
           ),
         })),
 
@@ -128,6 +184,12 @@ export const useStore = create<State>()(
 
 // Selectors
 export const selectUnsorted = (s: State) => s.captures.filter((c) => c.bucketId === null);
+export const selectDue = (s: State) =>
+  s.captures
+    .filter((c) => isDue(c.review))
+    .sort((a, b) => (a.review!.dueAt - b.review!.dueAt));
+export const selectCaptureById = (id: string) => (s: State) =>
+  s.captures.find((c) => c.id === id);
 export const selectBucketById = (id: string | null) => (s: State) =>
   s.buckets.find((b) => b.id === id);
 export const selectSortedBuckets = (s: State) =>

@@ -19,6 +19,32 @@ export interface Bucket {
 export type SyncState = 'local' | 'syncing' | 'synced';
 export type EnrichmentStatus = 'idle' | 'queued' | 'done' | 'failed';
 
+/**
+ * Structured AI research attached to a capture. Shape is final — the only thing
+ * that changes when the real backend lands is who fills it in (Claude vs. the
+ * local placeholder generator).
+ */
+export interface Enrichment {
+  title: string;
+  summary: string;
+  clinicalRelevance: string;
+  keyFacts: string[];
+  suggestedTags: string[];
+  confidence: 'high' | 'medium' | 'low';
+  /** 'placeholder' until the Claude backend replaces it with real research. */
+  source: 'placeholder' | 'claude';
+  createdAt: number;
+}
+
+/** Spaced-repetition scheduling state for a sorted capture. */
+export interface Review {
+  dueAt: number;
+  intervalDays: number;
+  ease: number;
+  lastResult?: 'again' | 'good' | 'easy';
+  reps: number;
+}
+
 export interface Capture {
   id: string;
   text: string;
@@ -32,6 +58,8 @@ export interface Capture {
   updatedAt: number;
   syncState: SyncState;
   enrichmentStatus: EnrichmentStatus;
+  enrichment?: Enrichment;
+  review?: Review;
 }
 
 export interface Course {

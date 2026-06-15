@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -93,7 +94,10 @@ export default function LibraryScreen() {
 function CaptureRow({ capture, bucket }: { capture: Capture; bucket?: Bucket }) {
   const enrich = capture.enrichmentStatus;
   return (
-    <View style={styles.row}>
+    <Pressable
+      style={styles.row}
+      onPress={() => router.push({ pathname: '/capture/[id]', params: { id: capture.id } })}
+    >
       <View style={[styles.stripe, { backgroundColor: bucket?.color ?? colors.borderStrong }]} />
       <View style={styles.flex}>
         <Text style={styles.rowText} numberOfLines={3}>
@@ -113,7 +117,7 @@ function CaptureRow({ capture, bucket }: { capture: Capture; bucket?: Bucket }) 
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
